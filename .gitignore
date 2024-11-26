@@ -3,10 +3,12 @@
 /.vscode
 /.env
 package-lock.json
+/.deps
 
 # Hardhat files
 /cache
 /artifacts
+/contracts/artifacts
 
 # TypeChain files
 /typechain
