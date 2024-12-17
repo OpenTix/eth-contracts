@@ -14,7 +14,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     constructor() ERC1155("https://onlytickets.co/api/tokens/{id}.json") {
         owner = msg.sender;
         self = address(this);
-        console.log("Contract address is 0x%x and owner address is 0x%x", self, owner);
+        console.log("Contract address is ", self, " and owner address is", owner);
     }
 
     function create_new_event(string calldata description, string calldata from, uint256 general_admission, uint256 unique_seats) public {
@@ -35,8 +35,8 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             } else {
                 amounts[i] = general_admission;
             }
-            console.log("ids[%d] = %d", i, ids[i]);
-            console.log("amounts[%d] = %d", i, amounts[i]);
+            // console.log("ids[%d] = %d", i, ids[i]);
+            // console.log("amounts[%d] = %d", i, amounts[i]);
         }
 
         
