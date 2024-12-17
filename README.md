@@ -12,3 +12,6 @@ Repo that contains all of our smart contracts
     * const VenueMint = await ethers.getContractFactory("VenueMint")
     * const venuemint = await VenueMint.attach(Address provided by the deployed contract)
     * const resp = await venuemint.function(params) (const resp = await venuemint.create_new_event("test", "0xblahblahblah", general_admission, unique_seats))
+
+# Nice to haves
+* [Gas estimator](https://www.cryptoneur.xyz/en/gas-fees-calculator?usedGas=25180972&txnType=Custom)
