@@ -3,14 +3,22 @@ pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
+
+struct Event {
+    uint256 count;
+    string description;
+}
 
 contract VenueMint is ERC1155Holder, ERC1155 {
     address private owner;
     address private self;
 
-    mapping (string => address) event_to_vendor;
+    mapping (string => address) private event_to_vendor;
     uint256 last_id = 0;
+
+    Event[] private events;
 
     event Event_Commencement(address indexed from, string description, string venue_URI, uint256 capacity);
 
@@ -54,8 +62,22 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         }
 
         event_to_vendor[description] = msg.sender;
+        events.push(Event({ description:description, count: general_admission + unique_seats}));
         last_id = i;
         _mintBatch(self, ids, amounts, "");
+    }
+
+    function getEvents() internal view returns (string[] memory) {
+        string[] memory ret = new string[](100);
+        uint256 j = 0;
+
+        for (uint256 i = 0; i < events.length; ++i) {
+            if (events[i].count > 0) {
+                ret[j++] = string(abi.encodePacked(events[i].description, " ", Strings.toString(events[i].count)));
+            }
+        }
+
+        return ret;
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC1155Holder) returns (bool) {
