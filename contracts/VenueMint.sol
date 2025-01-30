@@ -46,8 +46,8 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         uint256 i = last_id;
 
         for (; i < last_id + ids.length; ++i) {
-            ids[i] = i;
-            amounts[i] = 1;
+            ids[i - last_id] = i;
+            amounts[i - last_id] = 1;
 
             /*
             if(i < unique_seats) {
@@ -67,13 +67,13 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         _mintBatch(self, ids, amounts, "");
     }
 
-    function getEvents() internal view returns (string[] memory) {
-        string[] memory ret = new string[](100);
+    function getEvents() public view returns (string[] memory) {
+        string[] memory ret = new string[](events.length > 100 ? 100 : events.length);
         uint256 j = 0;
 
         for (uint256 i = 0; i < events.length; ++i) {
             if (events[i].count > 0) {
-                ret[j++] = string(abi.encodePacked(events[i].description, " ", Strings.toString(events[i].count)));
+                ret[j++] = string(abi.encodePacked(events[i].description, " Capacity is ", Strings.toString(events[i].count)));
             }
         }
 
@@ -83,4 +83,5 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC1155Holder) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
+
 }
