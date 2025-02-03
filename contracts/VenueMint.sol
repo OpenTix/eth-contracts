@@ -112,6 +112,11 @@ contract VenueMint is ERC1155Holder, ERC1155 {
 
             _safeBatchTransferFrom(self, msg.sender, ids, values, "");
             emit Buy_Ticket_Event(event_description, ids.length);
+            
+            for (uint256 i = 0; i < ids.length; ++i) {
+                ticket_costs[ids[i]] = 0;
+            }
+
             return (true, total_cost);
         }
     }
