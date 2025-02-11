@@ -33,32 +33,37 @@ describe("VenueMint", function () {
 
         // checks that purchasing a single ticket works with a separate user and vendor wallet
         it("can purchase single ticket", async () => {
-            const contract1 = await loadFixture(deployOne);
+            const init_contract = await loadFixture(deployOne);
 
             // vendor wallet and address
             const wallet = ethers.Wallet.createRandom().connect(ethers.provider);
             const address = await wallet.getAddress();
 
+            // add a ton of fake money to the vendor wallet
+            const vender_contract_instance = init_contract.connect(wallet);
+
+            ethers.provider.send("hardhat_setBalance", [address, "0xFFFFFFFFFFFFFFFFFFFFF"])
+            
             // user wallet and address
             const userWallet = ethers.Wallet.createRandom().connect(ethers.provider);
             const userAddress = await userWallet.getAddress();
-            
-            // attach the contract to the user wallet
-            // this means when we call the contracts functions the
-            // sender (signer) will be the user wallet
-            const contract = contract1.connect(userWallet)
             
             // add a ton of fake money to the user wallet
             ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
             
             // create the event
-            const tmp = await contract.create_new_event("test", address, 1, 0, [5])
+            const tmp = await vender_contract_instance.create_new_event("test", address, 1, 0, [5000])
             
+            // attach the contract to the user wallet
+            // this means when we call the contracts functions the
+            // sender (signer) will be the user wallet
+            const user_contract_instance = vender_contract_instance.connect(userWallet)
+
             // buy the tickets (way too much money give here)
-            const resp = await contract.buy_tickets("test", [0], {value: ethers.parseEther("1")});
-            
+            const resp = await user_contract_instance.buy_tickets("test", [0], {value: ethers.parseEther("1")});
+
             // check that the user wallet now owns the NFT
-            expect(await contract.balanceOfBatch([userAddress], [0])).to.eql([1n]);
+            expect(await user_contract_instance.balanceOfBatch([userAddress], [0])).to.eql([1n]);
         })
     })
 })

@@ -34,11 +34,11 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     }
 
     // Create a new event check the costs, emit an event being made
-    function create_new_event(string calldata description, string calldata from, uint256 general_admission, uint256 unique_seats, uint256[] calldata costs) public returns (bool) {
+    function create_new_event(string calldata description, string calldata vendor_url, uint256 general_admission, uint256 unique_seats, uint256[] calldata costs) public returns (bool) {
         if (costs.length != unique_seats + 1) {
             return false;
         }
-        emit Event_Commencement(msg.sender, description, from, general_admission + unique_seats);
+        emit Event_Commencement(msg.sender, description, vendor_url, general_admission + unique_seats);
 
         //console.log("Description is %s", description);
         //console.log("Venue URL is %s", from);
@@ -120,7 +120,8 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             }
 
             // Transfer the money to the vendor
-            event_to_vendor[event_description].transfer(total_cost);
+            (bool success, ) = event_to_vendor[event_description].call{value:total_cost}("");
+            require(success, "transfer to vender failed.");
 
             // Transfer the tickets to the user
             _safeBatchTransferFrom(self, msg.sender, ids, values, "");
