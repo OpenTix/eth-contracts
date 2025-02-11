@@ -30,7 +30,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     constructor() ERC1155("https://onlytickets.co/api/tokens/{id}.json") {
         owner = msg.sender;
         self = address(this);
-        console.log("Contract address is ", self, " and owner address is", owner);
+        //console.log("Contract address is ", self, " and owner address is", owner);
     }
 
     // Create a new event check the costs, emit an event being made
@@ -40,10 +40,10 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         }
         emit Event_Commencement(msg.sender, description, from, general_admission + unique_seats);
 
-        console.log("Description is %s", description);
-        console.log("Venue URL is %s", from);
-        console.log("General admission is %d", general_admission);
-        console.log("Unique seats is %d", unique_seats);
+        //console.log("Description is %s", description);
+        //console.log("Venue URL is %s", from);
+        //console.log("General admission is %d", general_admission);
+        //console.log("Unique seats is %d", unique_seats);
 
         /*
         uint256[] memory ids = new uint256[](unique_seats + 1);
