@@ -1,7 +1,7 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { contracts } from "../typechain-types";
 import { expect } from "chai";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 
 // overall testing framework
 describe("VenueMint", function () {
@@ -23,10 +23,42 @@ describe("VenueMint", function () {
             expect(contract).to.be;
         })
 
-        // basic check to make sure the MintBatch event is properly emitted
-        it("should emit a mint batch event", async () => {
+        // basic check to make sure the create_new_event function is creating NFTs
+        // this checks that the contract owns the nft after creation
+        it("can create an nft", async () => {
             const contract = await loadFixture(deployOne);
-            expect(await contract.create_new_event("test", "0xblahblahblah", 1, 0, [5])).to.emit(contract, "MintBatch");
+            await contract.create_new_event("test", "0xblahblahblah", 1, 0, [5])
+            expect(await contract.balanceOfBatch([await contract.getAddress()], [0])).to.eql([1n])
+        })
+
+        // checks that purchasing a single ticket works with a separate user and vendor wallet
+        it("can purchase single ticket", async () => {
+            const contract1 = await loadFixture(deployOne);
+
+            // vendor wallet and address
+            const wallet = ethers.Wallet.createRandom().connect(ethers.provider);
+            const address = await wallet.getAddress();
+
+            // user wallet and address
+            const userWallet = ethers.Wallet.createRandom().connect(ethers.provider);
+            const userAddress = await userWallet.getAddress();
+            
+            // attach the contract to the user wallet
+            // this means when we call the contracts functions the
+            // sender (signer) will be the user wallet
+            const contract = contract1.connect(userWallet)
+            
+            // add a ton of fake money to the user wallet
+            ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
+            
+            // create the event
+            const tmp = await contract.create_new_event("test", address, 1, 0, [5])
+            
+            // buy the tickets (way too much money give here)
+            const resp = await contract.buy_tickets("test", [0], {value: ethers.parseEther("1")});
+            
+            // check that the user wallet now owns the NFT
+            expect(await contract.balanceOfBatch([userAddress], [0])).to.eql([1n]);
         })
     })
 })
