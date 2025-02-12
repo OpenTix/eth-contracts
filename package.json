@@ -10,7 +10,8 @@
     "clean": "npx hardhat clean",
     "deploy_mint": "npx hardhat ignition deploy ./ignition/modules/VenueMint.ts --network localhost",
     "local_console": "npx hardhat console --network localhost",
-    "generate_abi": "solc-windows.exe --base-path . --include-path node_modules\\ contracts\\VenueMint.sol --abi"
+    "generate_abi": "solc-windows.exe --base-path . --include-path node_modules\\ contracts\\VenueMint.sol --abi",
+    "generate_abi_wsl": "./solc-windows.exe --base-path . --include-path ./node_modules/ ./contracts/VenueMint.sol --abi"
   },
   "author": "",
   "license": "ISC",
