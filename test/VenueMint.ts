@@ -66,11 +66,31 @@ describe("VenueMint", function () {
             expect(await user_contract_instance.balanceOfBatch([userAddress], [0])).to.eql([1n]);
         })
 
+        // tests if 2 NFTs can be created
         it("can create multiple nfts", async () => {
             const contract = await loadFixture(deployOne);
             const contract_address = await contract.getAddress();
             await contract.create_new_event("test", contract_address, 2, 0, [5, 5]);
             expect(await contract.balanceOfBatch([contract_address, contract_address], [0,1])).to.eql([1n,1n])
+        })
+
+        it("can create 100-1000 NFTs", async () => {
+            const contract = await loadFixture(deployOne);
+            const contract_address = await contract.getAddress();
+            let max = 10;
+            let base = 100;
+            let total_so_far = 0;
+
+            for(let i = 1; i <= max; i++) {
+                // create the events
+                await contract.create_new_event(`test ${i*base}`, contract_address, i*base, 0, Array(i*base).fill(5));
+
+                expect(await contract.balanceOfBatch(Array(i*base).fill(contract_address), Array.from({length: i*base}, (_, i) => i + total_so_far))).to.eql(Array(i*base).fill(1n));
+
+                total_so_far += i*max;
+            }
+
+
         })
     })
 })
