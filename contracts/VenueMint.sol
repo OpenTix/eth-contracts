@@ -35,9 +35,8 @@ contract VenueMint is ERC1155Holder, ERC1155 {
 
     // Create a new event check the costs, emit an event being made
     function create_new_event(string calldata description, string calldata vendor_url, uint256 general_admission, uint256 unique_seats, uint256[] calldata costs) public returns (bool) {
-        if (costs.length != unique_seats + 1) {
-            return false;
-        }
+        require(costs.length == unique_seats + general_admission, "Must provide the same number of costs as general admission and unique seats.");
+
         emit Event_Commencement(msg.sender, description, vendor_url, general_admission + unique_seats);
 
         //console.log("Description is %s", description);
@@ -84,7 +83,6 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         _mintBatch(self, ids, amounts, "");
         // Keep up with the last nft we minted;
         last_id = i;
-
         return true;
     }
 

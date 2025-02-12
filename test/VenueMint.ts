@@ -65,5 +65,12 @@ describe("VenueMint", function () {
             // check that the user wallet now owns the NFT
             expect(await user_contract_instance.balanceOfBatch([userAddress], [0])).to.eql([1n]);
         })
+
+        it("can create multiple nfts", async () => {
+            const contract = await loadFixture(deployOne);
+            const contract_address = await contract.getAddress();
+            await contract.create_new_event("test", contract_address, 2, 0, [5, 5]);
+            expect(await contract.balanceOfBatch([contract_address, contract_address], [0,1])).to.eql([1n,1n])
+        })
     })
 })
