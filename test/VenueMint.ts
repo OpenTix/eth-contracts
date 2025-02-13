@@ -155,7 +155,7 @@ describe("VenueMint", function () {
             }) 
 
             // checks that the vendor is paid properly when batch buying tickets
-            it("properly pays the vender when buying multiple tickets", async () => {
+            it("properly pays the vender when batch buying multiple tickets", async () => {
                 const init_contract = await loadFixture(deployOne);
                 let min_cost = 5;
                 let max_cost = 100000;
@@ -198,6 +198,167 @@ describe("VenueMint", function () {
 
                 // check that the vender wallet gained the correct amount of money
                 expect(vendor_balance_after - vendor_balance_before).is.equal(ticket_cost*2);
+            })
+
+            // checks that the vendor is paid properly when buying multiple tickets separately
+            it("properly pays the vender when buying multiple tickets in individual transactions", async () => {
+                const init_contract = await loadFixture(deployOne);
+                let min_cost = 5;
+                let max_cost = 100000;
+                const minCeiled = Math.ceil(min_cost);
+                const maxFloored = Math.floor(max_cost);
+
+                // randomly calculate cost of the ticket
+                let ticket_cost =  Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
+
+                // vendor wallet and address
+                const wallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const address = await wallet.getAddress();
+
+                // add a ton of fake money to the vendor wallet
+                const vender_contract_instance = init_contract.connect(wallet);
+
+                ethers.provider.send("hardhat_setBalance", [address, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // user wallet and address
+                const userWallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const userAddress = await userWallet.getAddress();
+
+                // add a ton of fake money to the user wallet
+                ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // create the event
+                const tmp = await vender_contract_instance.create_new_event("test", address, 2, 0, [ticket_cost, ticket_cost]);
+
+                // attach the contract to the user wallet
+                // this means when we call the contracts functions the
+                // sender (signer) will be the user wallet
+                const user_contract_instance = vender_contract_instance.connect(userWallet)
+
+                const vendor_balance_before = await ethers.provider.getBalance(address);
+
+                // buy the tickets (way too much money give here)
+                const resp = await user_contract_instance.buy_tickets("test", [0], {value: ethers.parseEther("1")});
+                const resp2 = await user_contract_instance.buy_tickets("test", [1], {value: ethers.parseEther("1")});
+                
+                const vendor_balance_after = await ethers.provider.getBalance(address);
+                
+                // check that the vender wallet gained the correct amount of money
+                expect(vendor_balance_after - vendor_balance_before).is.equal(ticket_cost*2);
+            })
+
+            // checks that the vendor is paid properly when mutliple users buy a ticket
+            it("properly pays the vender when multiple users buy a ticket", async () => {
+                const init_contract = await loadFixture(deployOne);
+                let min_cost = 5;
+                let max_cost = 100000;
+                const minCeiled = Math.ceil(min_cost);
+                const maxFloored = Math.floor(max_cost);
+
+                // randomly calculate cost of the ticket
+                let ticket_cost =  Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
+
+                // vendor wallet and address
+                const wallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const address = await wallet.getAddress();
+
+                // add a ton of fake money to the vendor wallet
+                const vender_contract_instance = init_contract.connect(wallet);
+
+                ethers.provider.send("hardhat_setBalance", [address, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // user wallet and address
+                const userWallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const userAddress = await userWallet.getAddress();
+
+                // add a ton of fake money to the user wallet
+                ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // second user wallet and address
+                const userWallet2 = ethers.Wallet.createRandom().connect(ethers.provider)
+                const userAddress2 = await userWallet2.getAddress()
+
+                // add a ton of fake money to the second user wallet
+                ethers.provider.send("hardhat_setBalance", [userAddress2, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // create the event
+                const tmp = await vender_contract_instance.create_new_event("test", address, 2, 0, [ticket_cost, ticket_cost]);
+
+                // attach the contract to the user wallet
+                // this means when we call the contracts functions the
+                // sender (signer) will be the user wallet
+                const user_contract_instance = vender_contract_instance.connect(userWallet);
+
+                const vendor_balance_before = await ethers.provider.getBalance(address);
+
+                // buy the tickets (way too much money give here)
+                const resp = await user_contract_instance.buy_tickets("test", [0], {value: ethers.parseEther("1")});
+
+                const user2_contract_instance = user_contract_instance.connect(userWallet2);
+
+                const resp2 = await user2_contract_instance.buy_tickets("test", [1], {value: ethers.parseEther("1")});
+                
+                const vendor_balance_after = await ethers.provider.getBalance(address);
+                
+                // check that the vender wallet gained the correct amount of money
+                expect(vendor_balance_after - vendor_balance_before).is.equal(ticket_cost*2);
+            })
+
+            // checks that the vendor is paid properly when mutliple users buy multiple tickets
+            it("properly pays the vender when multiple users buy multiple tickets", async () => {
+                const init_contract = await loadFixture(deployOne);
+                let min_cost = 5;
+                let max_cost = 100000;
+                const minCeiled = Math.ceil(min_cost);
+                const maxFloored = Math.floor(max_cost);
+
+                // randomly calculate cost of the ticket
+                let ticket_cost =  Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
+
+                // vendor wallet and address
+                const wallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const address = await wallet.getAddress();
+
+                // add a ton of fake money to the vendor wallet
+                const vender_contract_instance = init_contract.connect(wallet);
+
+                ethers.provider.send("hardhat_setBalance", [address, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // user wallet and address
+                const userWallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const userAddress = await userWallet.getAddress();
+
+                // add a ton of fake money to the user wallet
+                ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // second user wallet and address
+                const userWallet2 = ethers.Wallet.createRandom().connect(ethers.provider)
+                const userAddress2 = await userWallet2.getAddress()
+
+                // add a ton of fake money to the second user wallet
+                ethers.provider.send("hardhat_setBalance", [userAddress2, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // create the event
+                const tmp = await vender_contract_instance.create_new_event("test", address, 4, 0, [ticket_cost, ticket_cost, ticket_cost, ticket_cost]);
+
+                // attach the contract to the user wallet
+                // this means when we call the contracts functions the
+                // sender (signer) will be the user wallet
+                const user_contract_instance = vender_contract_instance.connect(userWallet);
+
+                const vendor_balance_before = await ethers.provider.getBalance(address);
+
+                // buy the tickets (way too much money give here)
+                const resp = await user_contract_instance.buy_tickets("test", [0,1], {value: ethers.parseEther("1")});
+
+                const user2_contract_instance = user_contract_instance.connect(userWallet2);
+
+                const resp2 = await user2_contract_instance.buy_tickets("test", [2,3], {value: ethers.parseEther("1")});
+                
+                const vendor_balance_after = await ethers.provider.getBalance(address);
+
+                // check that the vender wallet gained the correct amount of money
+                expect(vendor_balance_after - vendor_balance_before).is.equal(ticket_cost*4);
             })
         })
     })
