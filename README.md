@@ -4,6 +4,8 @@ Repo that contains all of our smart contracts
 
 # Testing
 
+* Run automated tests with `npx hardhat test`
+
 ## Steps
 * npm run rebuild - Will clean and compile all contracts in contracts/
 * npx hardhat node (localhost for now)
