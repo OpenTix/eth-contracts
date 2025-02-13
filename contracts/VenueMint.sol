@@ -88,12 +88,13 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         // Track the vendor wallet so they can be paid when someone buys a ticket to their event
         // Save the event to events
         event_to_vendor[description] = payable(msg.sender);
+        events.push(Event({ description:description, count: general_admission + unique_seats}));
 
+        // keep track of the NFT ids for the event
         Ids memory tmp;
         tmp.min = last_id;
         tmp.max = i-1;
         event_to_ids[description] = tmp;
-        events.push(Event({ description:description, count: general_admission + unique_seats}));
 
         _mintBatch(self, ids, amounts, "");
         // Keep up with the last nft we minted;
@@ -111,12 +112,10 @@ contract VenueMint is ERC1155Holder, ERC1155 {
                                   " Capacity is ", Strings.toString(events[i].count)));
             }
         }
-
         return ret;
     }
 
     function get_event_ids(string calldata description) public view returns (Ids memory) {
-        //console.log(event_to_ids[description]);
         return event_to_ids[description];
     }
 

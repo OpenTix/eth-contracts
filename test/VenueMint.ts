@@ -98,13 +98,11 @@ describe("VenueMint", function () {
 
             const tmp = await contract.create_new_event("test", "0xblahblah", 5, 0, [5,5,5,5,5]);
 
+            // check that it returns properly for a valid and non valid event
             const tmp2 = await contract.get_event_ids("test");
-            // console.log(tmp2);
-
             expect(tmp2).to.eql(Array(0n,4n));
 
             const tmp3 = await contract.get_event_ids("");
-            // console.log(tmp3);
             expect(tmp3).to.eql(Array(0n,0n));
         })
 
