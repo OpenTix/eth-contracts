@@ -5,7 +5,7 @@
   "main": "soljson-v0.8.28+commit.7893614a.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "rebuild": "npx hardhat clean && npx hardhat compile",
+    "rebuild": "solhint 'contracts/*' && npx hardhat clean && npx hardhat compile",
     "build": "npx hardhat compile",
     "clean": "npx hardhat clean",
     "deploy_mint": "npx hardhat ignition deploy ./ignition/modules/VenueMint.ts --network localhost",
@@ -20,6 +20,7 @@
     "hardhat": "^2.22.16"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.1.0"
+    "@openzeppelin/contracts": "^5.1.0",
+    "solhint": "^5.0.5"
   }
 }

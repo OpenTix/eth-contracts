@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 
 struct Event {
     uint256 count;
@@ -34,8 +34,11 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     }
 
     // Create a new event check the costs, emit an event being made
-    function create_new_event(string calldata description, string calldata vendor_url, uint256 general_admission, uint256 unique_seats, uint256[] calldata costs) public returns (bool) {
-        require(costs.length == unique_seats + general_admission, "Must provide the same number of costs as general admission and unique seats.");
+    function create_new_event(string calldata description, string calldata vendor_url, 
+                              uint256 general_admission, uint256 unique_seats, 
+                              uint256[] calldata costs) public returns (bool) {
+        require(costs.length == unique_seats + general_admission,
+                "Must provide the same number of costs as general admission and unique seats.");
 
         emit Event_Commencement(msg.sender, description, vendor_url, general_admission + unique_seats);
 
@@ -92,7 +95,8 @@ contract VenueMint is ERC1155Holder, ERC1155 {
 
         for (uint256 i = 0; i < events.length; ++i) {
             if (events[i].count > 0) {
-                ret[j++] = string(abi.encodePacked(events[i].description, " Capacity is ", Strings.toString(events[i].count)));
+                ret[j++] = string(abi.encodePacked(events[i].description,
+                                  " Capacity is ", Strings.toString(events[i].count)));
             }
         }
 
@@ -100,7 +104,8 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     }
 
     // Enable users to buy tickets (NFTs)
-    function buy_tickets(string calldata event_description, uint256[] calldata ids) payable public returns (bool, uint256) {
+    function buy_tickets(string calldata event_description, uint256[] calldata ids) payable public
+    returns (bool, uint256) {
         // Get the total cost of each tickets
         uint256 total_cost = 0;
         for (uint256 i = 0; i < ids.length; ++i) {
@@ -134,7 +139,8 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         }
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC1155Holder) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC1155Holder)
+    returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
