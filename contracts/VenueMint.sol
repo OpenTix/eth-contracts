@@ -5,11 +5,17 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-//import "hardhat/console.sol";
 
 struct Event {
     uint256 count;
     string description;
+}
+
+// holds the minimum and maximum ids for that event
+struct Ids {
+    // both inclusive
+    uint256 min;
+    uint256 max;
 }
 
 contract VenueMint is ERC1155Holder, ERC1155 {
@@ -18,6 +24,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
 
     mapping (string => address payable) private event_to_vendor; // Mapping event descriptions to vendor wallets
     mapping (uint256 => uint256) private ticket_costs; // Mapping nft ids to cost
+    mapping (string => Ids) private event_to_ids; // Mapping event descriptions to NFT ids
 
     uint256 last_id = 0; // The last id that we minted
 
@@ -81,6 +88,11 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         // Track the vendor wallet so they can be paid when someone buys a ticket to their event
         // Save the event to events
         event_to_vendor[description] = payable(msg.sender);
+
+        Ids memory tmp;
+        tmp.min = last_id;
+        tmp.max = i-1;
+        event_to_ids[description] = tmp;
         events.push(Event({ description:description, count: general_admission + unique_seats}));
 
         _mintBatch(self, ids, amounts, "");
@@ -101,6 +113,11 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         }
 
         return ret;
+    }
+
+    function get_event_ids(string calldata description) public view returns (Ids memory) {
+        //console.log(event_to_ids[description]);
+        return event_to_ids[description];
     }
 
     // Enable users to buy tickets (NFTs)
