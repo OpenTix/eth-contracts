@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 struct Event {
     uint256 count;
@@ -16,6 +17,7 @@ struct Ids {
     // both inclusive
     uint256 min;
     uint256 max;
+    bool exists;
 }
 
 contract VenueMint is ERC1155Holder, ERC1155 {
@@ -94,6 +96,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         Ids memory tmp;
         tmp.min = last_id;
         tmp.max = i-1;
+        tmp.exists = true;
         event_to_ids[description] = tmp;
 
         _mintBatch(self, ids, amounts, "");
@@ -115,8 +118,32 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         return ret;
     }
 
-    function get_event_ids(string calldata description) public view returns (Ids memory) {
-        return event_to_ids[description];
+    // returns a list of all valid NFT ids for the event
+    function get_event_ids(string calldata description) public view returns (uint256[] memory) {
+        Ids memory tmp = event_to_ids[description];
+        uint256 count = 0;
+
+        // check that there is a valid description
+        require(tmp.exists, "Please provide a description for a valid event.");
+
+        // figure out how big our array needs to be
+        for (uint256 i = tmp.min; i <= tmp.max; i++) {
+            if (ticket_costs[i] != 0) {
+                count++;
+            }
+        }
+
+        uint256[] memory result = new uint256[](count); 
+        uint256 j = 0;
+        for (uint256 i = tmp.min; i <= tmp.max; i++) {
+            if (ticket_costs[i] != 0) {
+                //console.log(i);
+                result[j] = i;
+                j++;
+            }
+        }
+
+        return result;
     }
 
     // Enable users to buy tickets (NFTs)

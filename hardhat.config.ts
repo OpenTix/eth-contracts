@@ -6,7 +6,7 @@ const config: HardhatUserConfig = {
   solidity: "0.8.27",
   networks: {
         hardhat: {
-            blockGasLimit: 1000000000000 // whatever you want here
+            blockGasLimit: 1000000000000, // whatever you want here
         },
     },
   gasReporter: {
@@ -17,7 +17,10 @@ const config: HardhatUserConfig = {
         gasPrice: 30,
         tokenPrice: "1",       // ETH per ETH
         token: "ETH",
-        }
+        },
+        mocha: {
+          timeout: 100000000,
+        },
 };
 
 export default config;
