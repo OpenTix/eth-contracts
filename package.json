@@ -4,7 +4,7 @@
   "description": "Repo that contains all of our smart contracts",
   "main": "soljson-v0.8.28+commit.7893614a.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npx hardhat test",
     "rebuild": "solhint 'contracts/*' && npx hardhat clean && npx hardhat compile",
     "build": "npx hardhat compile",
     "clean": "npx hardhat clean",
