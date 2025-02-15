@@ -156,30 +156,29 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         }
 
         // Check if they are able to buy those tickets and that they have enough money
-        if (total_cost == 0 || msg.value < total_cost) {
-            return (false, 0);
-        } else {
-            // Buy one since they're NFTs
-            uint256[] memory values = new uint256[](ids.length);
-            for (uint256 i = 0; i < ids.length; ++i) {
-                values[i] = 1;
-            }
-
-            // Transfer the money to the vendor
-            (bool success, ) = event_to_vendor[event_description].call{value:total_cost}("");
-            require(success, "transfer to vender failed.");
-
-            // Transfer the tickets to the user
-            _safeBatchTransferFrom(self, msg.sender, ids, values, "");
-            emit Buy_Ticket_Event(event_description, ids.length);
-            
-            // 0 out the costs so that we can't double sell tickets
-            for (uint256 i = 0; i < ids.length; ++i) {
-                ticket_costs[ids[i]] = 0;
-            }
-
-            return (true, total_cost);
+        require (total_cost > 0, "You are attempting to buy unavailable tickets.");
+        require(msg.value >= total_cost, "You do not have enough money to purchase the desired tickets.");
+        
+        // Buy one since they're NFTs
+        uint256[] memory values = new uint256[](ids.length);
+        for (uint256 i = 0; i < ids.length; ++i) {
+            values[i] = 1;
         }
+
+        // Transfer the money to the vendor
+        (bool success, ) = event_to_vendor[event_description].call{value:total_cost}("");
+        require(success, "transfer to vender failed.");
+
+        // Transfer the tickets to the user
+        _safeBatchTransferFrom(self, msg.sender, ids, values, "");
+        emit Buy_Ticket_Event(event_description, ids.length);
+        
+        // 0 out the costs so that we can't double sell tickets
+        for (uint256 i = 0; i < ids.length; ++i) {
+            ticket_costs[ids[i]] = 0;
+        }
+
+        return (true, total_cost);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC1155Holder)
