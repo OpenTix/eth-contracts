@@ -9,6 +9,7 @@
     "build": "npx hardhat compile",
     "clean": "npx hardhat clean",
     "deploy_mint": "npx hardhat ignition deploy ./ignition/modules/VenueMint.ts --network localhost",
+    "deploy_testing": "npx hardhat ignition deploy ./ignition/modules/VenueMint.ts --network polygon_amoy",
     "local_console": "npx hardhat console --network localhost",
     "generate_abi": "solc-windows.exe --base-path . --include-path node_modules\\ contracts\\VenueMint.sol --abi",
     "generate_abi_wsl": "./solc-windows.exe --base-path . --include-path ./node_modules/ ./contracts/VenueMint.sol --abi"
@@ -21,6 +22,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.1.0",
+    "dotenv": "^16.4.7",
     "hardhat-gas-reporter": "^2.2.2",
     "solhint": "^5.0.5"
   }
