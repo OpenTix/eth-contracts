@@ -19,6 +19,5 @@ jobs:
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
-          COINMARKETCAP_API_KEY: ${{ COINMARKETCAP_API_KEY }}
-        run: |
-          npx hardhat test
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+        run: npx hardhat test
