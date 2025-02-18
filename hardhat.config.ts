@@ -5,7 +5,7 @@ require('dotenv').config();
 
 const poly_api_key = process.env.POLYGONSCAN_API_KEY || ""
 const private_key = process.env.PRIVATE_KEY || "0000000000000000000000000000000000000000000000000000000000000000";
-const tmp = process.env.COINMARKETCAP_API_KEY || ""
+const coinmarketcap_api_key = process.env.COINMARKETCAP_API_KEY || ""
 
 const config: HardhatUserConfig = {
   solidity: "0.8.27",
@@ -25,7 +25,7 @@ const config: HardhatUserConfig = {
   gasReporter: {
     currency: 'USD',
     L1: "polygon",
-    coinmarketcap: tmp,
+    coinmarketcap: coinmarketcap_api_key,
     L1Etherscan: poly_api_key,
   },
   mocha: {
