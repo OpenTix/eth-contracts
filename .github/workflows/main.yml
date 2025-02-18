@@ -1,0 +1,18 @@
+name: hardhat test CI
+on:
+  push:
+    branches: [main]
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: npm install
+
+      - name: Run hardhat test
+        continue-on-error: false
+        run: |
+          npx hardhat test
