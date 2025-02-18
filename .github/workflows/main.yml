@@ -16,6 +16,9 @@ jobs:
           node-version: 20
           cache: "npm"
 
+      - name: Local Install
+        run: npm install
+
       - name: Run hardhat test
         continue-on-error: false
         env:
