@@ -2,7 +2,6 @@
 .env
 /.vscode
 /.env
-package-lock.json
 /.deps
 
 # Hardhat files
