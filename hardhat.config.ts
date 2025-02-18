@@ -5,7 +5,7 @@ require('dotenv').config()
 
 
 const poly_api_key = process.env.POLYGONSCAN_API_KEY
-const private_key = process.env.PRIVATE_KEY || "";
+const private_key = process.env.PRIVATE_KEY || "0000000000000000000000000000000000000000000000000000000000000000";
 
 const config: HardhatUserConfig = {
   solidity: "0.8.27",
@@ -23,12 +23,12 @@ const config: HardhatUserConfig = {
       apiKey: poly_api_key,
     },
   gasReporter: {
-        offline: true,
+        //offline: true,
         currency: 'USD',
-        L1: "polygon",
-        currencyDisplayPrecision: 10,
+        //L1: "polygon",
+        //currencyDisplayPrecision: 10,
         gasPrice: 30,
-        tokenPrice: "1",       // ETH per ETH
+        //tokenPrice: "1",       // ETH per ETH
         token: "ETH",
         },
         mocha: {
