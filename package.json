@@ -11,8 +11,8 @@
     "deploy_mint": "npx hardhat ignition deploy ./ignition/modules/VenueMint.ts --network localhost",
     "deploy_testing": "npx hardhat ignition deploy ./ignition/modules/VenueMint.ts --network polygon_amoy",
     "local_console": "npx hardhat console --network localhost",
-    "generate_abi": "solc-windows.exe --base-path . --include-path node_modules\\ contracts\\VenueMint.sol --abi",
-    "generate_abi_wsl": "./solc-windows.exe --base-path . --include-path ./node_modules/ ./contracts/VenueMint.sol --abi"
+    "generate_abi": "solc-windows.exe --base-path . --include-path node_modules\\ contracts\\VenueMint.sol --abi -o abis --overwrite",
+    "generate_abi_wsl": "solc --base-path . --include-path ./node_modules/ ./contracts/VenueMint.sol --abi -o abis --overwrite"
   },
   "author": "",
   "license": "ISC",

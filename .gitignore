@@ -22,3 +22,6 @@ ignition/deployments/chain-31337
 
 # Deployment files
 /ignition/deployments/
+
+# Abis
+/abis
