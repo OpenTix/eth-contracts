@@ -20,13 +20,20 @@ struct Ids {
     bool exists;
 }
 
+struct Transferable {
+    bool transferable;
+    bool exists;
+}
+
 contract VenueMint is ERC1155Holder, ERC1155 {
     address private owner; // Deployer of contract (us)
     address private self; // The address of the contract (self)
 
     mapping (string => address payable) private event_to_vendor; // Mapping event descriptions to vendor wallets
     mapping (uint256 => uint256) private ticket_costs; // Mapping nft ids to cost
+    mapping (uint256 => uint256) private original_ticket_costs; // mapping nft ids to their original costs (ticket_costs gets zero'd on purchase)
     mapping (string => Ids) private event_to_ids; // Mapping event descriptions to NFT ids
+    mapping (uint256 => Transferable) private id_to_transferable; // Mapping ticket id to whether they are allowed to be transferred to another user
 
     uint256 last_id = 0; // The last id that we minted
 
@@ -71,9 +78,14 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             amounts[i - last_id] = 1;
             if (i < unique_seats) {
                 ticket_costs[i] = costs[i - last_id];
+                original_ticket_costs[i] = costs[i - last_id];
             } else {
                 ticket_costs[i] = costs[costs.length - 1];
+                original_ticket_costs[i] = costs[costs.length - 1];
             }
+
+            id_to_transferable[i].exists = true;
+
 
             /*
             if(i < unique_seats) {
@@ -146,6 +158,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         return result;
     }
 
+    // returns true if the description is available. false otherwise
     function is_description_available(string calldata description) public view returns (bool) {
         return !event_to_ids[description].exists;
     }
@@ -183,6 +196,35 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         }
 
         return (true, total_cost);
+    }
+
+    // this enables the input user to transfer the callers tickets
+    function allow_user_to_user_ticket_transfer(uint256 ticketid) public returns (bool) {
+        Transferable memory tmp = id_to_transferable[ticketid];
+        require(tmp.exists, "The ticket id provided is not valid.");
+
+        id_to_transferable[ticketid].transferable = true;
+
+        console.log(self);
+        setApprovalForAll(self, true);
+        return true;
+    }
+
+    function buy_ticket_from_user(address user, uint256 ticketid) payable public returns (bool) {
+        Transferable memory tmp = id_to_transferable[ticketid];
+
+        require(tmp.exists, "The ticket id provided is not valid.");
+        require(tmp.transferable, "This ticket id provided is not transferable.");
+        require(msg.value >= original_ticket_costs[ticketid],"You did not send enough money to purchase the ticket.");
+
+        (bool success, ) = user.call{value:original_ticket_costs[ticketid]}("");
+        require(success, "Failed to pay the user you are purchasing from.");
+
+        _safeTransferFrom(user, msg.sender, ticketid, 1, "");
+
+        id_to_transferable[ticketid].transferable = false;
+
+        return true;
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC1155Holder)

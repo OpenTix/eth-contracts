@@ -148,6 +148,39 @@ describe("VenueMint", function () {
             expect(await contract.is_description_available("test")).to.equal(false);
         })
 
+        describe("User to User Ticket Transfer", function () {
+            it("properly transfers tickets from user to user", async () => {
+                const init_contract = await loadFixture(deployOne);
+
+                // make wallets
+                const nftholderwallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const nftholderaddress = await nftholderwallet.getAddress();
+                const nftpurchaserwallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const nftpurchaseraddress = await nftpurchaserwallet.getAddress();
+
+                console.log(nftholderaddress);
+                console.log(nftpurchaseraddress);
+
+                // give both money
+                ethers.provider.send("hardhat_setBalance", [nftholderaddress, "0xFFFFFFFFFFFFFFFFFFFFF"]);
+                ethers.provider.send("hardhat_setBalance", [nftpurchaseraddress, "0xFFFFFFFFFFFFFFFFFFFFF"]);
+
+                const holder_instance = init_contract.connect(nftholderwallet);
+                const tmp = await holder_instance.create_new_event("test", "cool beans", 1, 0, [2000]);
+
+                const resp = await holder_instance.buy_tickets("test", [0], {value: ethers.parseEther("1")});
+
+                const resp1 = await holder_instance.allow_user_to_user_ticket_transfer(0);
+
+                const purchaser_instance = holder_instance.connect(nftpurchaserwallet);
+
+                const resp2 = await purchaser_instance.buy_ticket_from_user(nftholderaddress,0, {value: ethers.parseEther("1")});
+
+                // console.log(resp2);
+                expect(resp2).to.equal(true);
+            })
+        })
+
         describe("Vendor Payment Functionality", function () {
 
             // checks that the vendor recieves the funds from one transaction
