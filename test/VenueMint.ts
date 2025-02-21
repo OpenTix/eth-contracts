@@ -139,13 +139,13 @@ describe("VenueMint", function () {
         it("will validate the description", async () => {
             const contract = await loadFixture(deployOne);
 
-            const tmp = await contract.validate_description("test");
+            const tmp = await contract.is_description_available("test");
 
             expect(tmp).to.equal(true);
 
             await contract.create_new_event("test", "tme", 1, 0, [1]);
 
-            expect(await contract.validate_description("test")).to.equal(false);
+            expect(await contract.is_description_available("test")).to.equal(false);
         })
 
         describe("Vendor Payment Functionality", function () {

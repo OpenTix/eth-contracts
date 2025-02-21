@@ -146,7 +146,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         return result;
     }
 
-    function validate_description(string calldata description) public view returns (bool) {
+    function is_description_available(string calldata description) public view returns (bool) {
         return !event_to_ids[description].exists;
     }
 
