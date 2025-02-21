@@ -146,6 +146,10 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         return result;
     }
 
+    function validate_description(string calldata description) public view returns (bool) {
+        return !event_to_ids[description].exists;
+    }
+
     // Enable users to buy tickets (NFTs)
     function buy_tickets(string calldata event_description, uint256[] calldata ids) payable public
     returns (bool, uint256) {

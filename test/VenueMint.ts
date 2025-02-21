@@ -136,6 +136,18 @@ describe("VenueMint", function () {
             expect(await contract.get_event_ids("test")).to.eql(Array(1n,2n,3n,4n))
         })
 
+        it("will validate the description", async () => {
+            const contract = await loadFixture(deployOne);
+
+            const tmp = await contract.validate_description("test");
+
+            expect(tmp).to.equal(true);
+
+            await contract.create_new_event("test", "tme", 1, 0, [1]);
+
+            expect(await contract.validate_description("test")).to.equal(false);
+        })
+
         describe("Vendor Payment Functionality", function () {
 
             // checks that the vendor recieves the funds from one transaction
