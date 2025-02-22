@@ -205,7 +205,6 @@ contract VenueMint is ERC1155Holder, ERC1155 {
 
         id_to_transferable[ticketid].transferable = true;
 
-        console.log(self);
         setApprovalForAll(self, true);
         return true;
     }

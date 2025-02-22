@@ -158,9 +158,6 @@ describe("VenueMint", function () {
                 const nftpurchaserwallet = ethers.Wallet.createRandom().connect(ethers.provider);
                 const nftpurchaseraddress = await nftpurchaserwallet.getAddress();
 
-                console.log(nftholderaddress);
-                console.log(nftpurchaseraddress);
-
                 // give both money
                 ethers.provider.send("hardhat_setBalance", [nftholderaddress, "0xFFFFFFFFFFFFFFFFFFFFF"]);
                 ethers.provider.send("hardhat_setBalance", [nftpurchaseraddress, "0xFFFFFFFFFFFFFFFFFFFFF"]);
@@ -176,8 +173,7 @@ describe("VenueMint", function () {
 
                 const resp2 = await purchaser_instance.buy_ticket_from_user(nftholderaddress,0, {value: ethers.parseEther("1")});
 
-                // console.log(resp2);
-                expect(resp2).to.equal(true);
+                expect(await purchaser_instance.balanceOf(nftpurchaseraddress, 0)).to.equal(1n);
             })
         })
 
