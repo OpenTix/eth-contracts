@@ -3,6 +3,7 @@ import { contracts } from "../typechain-types";
 import { expect } from "chai";
 import hre, { ethers } from "hardhat";
 import { bigint } from "hardhat/internal/core/params/argumentTypes";
+import { utils } from "../typechain-types/@openzeppelin/contracts";
 
 // overall testing framework
 describe("VenueMint", function () {
@@ -151,29 +152,58 @@ describe("VenueMint", function () {
         describe("User to User Ticket Transfer", function () {
             it("properly transfers tickets from user to user", async () => {
                 const init_contract = await loadFixture(deployOne);
-
+                
                 // make wallets
                 const nftholderwallet = ethers.Wallet.createRandom().connect(ethers.provider);
                 const nftholderaddress = await nftholderwallet.getAddress();
                 const nftpurchaserwallet = ethers.Wallet.createRandom().connect(ethers.provider);
                 const nftpurchaseraddress = await nftpurchaserwallet.getAddress();
-
+                
                 // give both money
                 ethers.provider.send("hardhat_setBalance", [nftholderaddress, "0xFFFFFFFFFFFFFFFFFFFFF"]);
                 ethers.provider.send("hardhat_setBalance", [nftpurchaseraddress, "0xFFFFFFFFFFFFFFFFFFFFF"]);
-
+                
+                // make the holder instance and create the event
                 const holder_instance = init_contract.connect(nftholderwallet);
                 const tmp = await holder_instance.create_new_event("test", "cool beans", 1, 0, [2000]);
-
+                
+                // buy the tickets and give the contract permission to control the holders tokens
                 const resp = await holder_instance.buy_tickets("test", [0], {value: ethers.parseEther("1")});
-
                 const resp1 = await holder_instance.allow_user_to_user_ticket_transfer(0);
+                
+                // variable to check that we removed the contracts ability to control our tokens
+                // a filter that allows us to only execute the function based on the holder and purchaser address
+                var disallow_ran = false;
+                const holderfilter = init_contract.filters.User_To_User_Transfer_Concluded(nftholderaddress, nftpurchaseraddress);
+                
+                // this is here purely for example (it is not necessary for our tests)
+                // setup a listener that removes the contracts ability to manage the holders tokens
+                holder_instance.on(holderfilter, async (response) => {
+                    console.log("Revoking contract access.");
+                    await holder_instance.disallow_user_to_user_ticket_transfer();
+                    disallow_ran = true;
+                });
 
+                // create the purchaser instance
                 const purchaser_instance = holder_instance.connect(nftpurchaserwallet);
 
-                const resp2 = await purchaser_instance.buy_ticket_from_user(nftholderaddress,0, {value: ethers.parseEther("1")});
+                const holder_balance_before = await ethers.provider.getBalance(nftholderaddress);
 
+                // make sure that the ticket buying function emits the correct events
+                // make sure that the ticket was properly transfered from the two wallets
+                expect(await purchaser_instance.buy_ticket_from_user(nftholderaddress,0, {value: ethers.parseEther("1")})).to.emit(purchaser_instance, "User_To_User_Transfer_Concluded").withArgs(nftholderaddress, nftpurchaseraddress);
                 expect(await purchaser_instance.balanceOf(nftpurchaseraddress, 0)).to.equal(1n);
+
+                // make sure the seller got the correct amount of money
+                const holder_balance_after = await ethers.provider.getBalance(nftholderaddress);
+                expect(holder_balance_after - holder_balance_before).to.equal(2000);
+
+                // wait 5 seconds this is required for this to work right
+                // explanation here: https://stackoverflow.com/questions/68432609/contract-event-listener-is-not-firing-when-running-hardhat-tests-with-ethers-js
+                await new Promise(res => setTimeout(() => res(null), 5000));
+
+                // make sure the listener caught the event
+                expect(disallow_ran).to.equal(true);
             })
         })
 

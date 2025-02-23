@@ -41,6 +41,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
 
     event Event_Commencement(address indexed from, string description, string venue_URI, uint256 capacity);
     event Buy_Ticket_Event(string description, uint256 count);
+    event User_To_User_Transfer_Concluded(address indexed seller, address indexed buyer);
 
     // Set the owner to the deployer and self to the address of the contract
     constructor() ERC1155("https://onlytickets.co/api/tokens/{id}.json") {
@@ -209,19 +210,31 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         return true;
     }
 
+    // disables the contracts control of the senders tokens
+    function disallow_user_to_user_ticket_transfer() public {
+        setApprovalForAll(self, false);
+    }
+
+    // this should be called buy the purchaser of the ticket
     function buy_ticket_from_user(address user, uint256 ticketid) payable public returns (bool) {
         Transferable memory tmp = id_to_transferable[ticketid];
 
+        // we need to make sure this is a valid transfer
         require(tmp.exists, "The ticket id provided is not valid.");
+        require(isApprovedForAll(user, self), "The seller has not authorized a transfer.");
         require(tmp.transferable, "This ticket id provided is not transferable.");
         require(msg.value >= original_ticket_costs[ticketid],"You did not send enough money to purchase the ticket.");
 
+        // send the money to the user
         (bool success, ) = user.call{value:original_ticket_costs[ticketid]}("");
         require(success, "Failed to pay the user you are purchasing from.");
 
+        // transfer the nft to the purchaser
         _safeTransferFrom(user, msg.sender, ticketid, 1, "");
 
         id_to_transferable[ticketid].transferable = false;
+
+        emit User_To_User_Transfer_Concluded(user, msg.sender);
 
         return true;
     }
