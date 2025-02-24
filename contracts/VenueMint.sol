@@ -20,13 +20,20 @@ struct Ids {
     bool exists;
 }
 
+struct Transferable {
+    bool transferable;
+    bool exists;
+}
+
 contract VenueMint is ERC1155Holder, ERC1155 {
     address private owner; // Deployer of contract (us)
     address private self; // The address of the contract (self)
 
     mapping (string => address payable) private event_to_vendor; // Mapping event descriptions to vendor wallets
     mapping (uint256 => uint256) private ticket_costs; // Mapping nft ids to cost
+    mapping (uint256 => uint256) private original_ticket_costs; // mapping nft ids to their original costs (ticket_costs gets zero'd on purchase)
     mapping (string => Ids) private event_to_ids; // Mapping event descriptions to NFT ids
+    mapping (uint256 => Transferable) private id_to_transferable; // Mapping ticket id to whether they are allowed to be transferred to another user
 
     uint256 last_id = 0; // The last id that we minted
 
@@ -34,6 +41,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
 
     event Event_Commencement(address indexed from, string description, string venue_URI, uint256 capacity);
     event Buy_Ticket_Event(string description, uint256 count);
+    event User_To_User_Transfer_Concluded(address indexed seller, address indexed buyer);
 
     // Set the owner to the deployer and self to the address of the contract
     constructor() ERC1155("https://onlytickets.co/api/tokens/{id}.json") {
@@ -71,9 +79,14 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             amounts[i - last_id] = 1;
             if (i < unique_seats) {
                 ticket_costs[i] = costs[i - last_id];
+                original_ticket_costs[i] = costs[i - last_id];
             } else {
                 ticket_costs[i] = costs[costs.length - 1];
+                original_ticket_costs[i] = costs[costs.length - 1];
             }
+
+            id_to_transferable[i].exists = true;
+
 
             /*
             if(i < unique_seats) {
@@ -119,7 +132,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     }
 
     // returns a list of all valid NFT ids for the event
-    function get_event_ids(string calldata description) public view returns (uint256[] memory) {
+    function get_event_ids(string calldata description) public view returns (uint256[] memory, Ids memory) {
         Ids memory tmp = event_to_ids[description];
         uint256 count = 0;
 
@@ -143,9 +156,10 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             }
         }
 
-        return result;
+        return (result, tmp);
     }
 
+    // returns true if the description is available. false otherwise
     function is_description_available(string calldata description) public view returns (bool) {
         return !event_to_ids[description].exists;
     }
@@ -183,6 +197,46 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         }
 
         return (true, total_cost);
+    }
+
+    // this enables the input user to transfer the callers tickets
+    function allow_user_to_user_ticket_transfer(uint256 ticketid) public returns (bool) {
+        Transferable memory tmp = id_to_transferable[ticketid];
+        require(tmp.exists, "The ticket id provided is not valid.");
+
+        id_to_transferable[ticketid].transferable = true;
+
+        setApprovalForAll(self, true);
+        return true;
+    }
+
+    // disables the contracts control of the senders tokens
+    function disallow_user_to_user_ticket_transfer() public {
+        setApprovalForAll(self, false);
+    }
+
+    // this should be called buy the purchaser of the ticket
+    function buy_ticket_from_user(address user, uint256 ticketid) payable public returns (bool) {
+        Transferable memory tmp = id_to_transferable[ticketid];
+
+        // we need to make sure this is a valid transfer
+        require(tmp.exists, "The ticket id provided is not valid.");
+        require(isApprovedForAll(user, self), "The seller has not authorized a transfer.");
+        require(tmp.transferable, "This ticket id provided is not transferable.");
+        require(msg.value >= original_ticket_costs[ticketid],"You did not send enough money to purchase the ticket.");
+
+        // send the money to the user
+        (bool success, ) = user.call{value:original_ticket_costs[ticketid]}("");
+        require(success, "Failed to pay the user you are purchasing from.");
+
+        // transfer the nft to the purchaser
+        _safeTransferFrom(user, msg.sender, ticketid, 1, "");
+
+        id_to_transferable[ticketid].transferable = false;
+
+        emit User_To_User_Transfer_Concluded(user, msg.sender);
+
+        return true;
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC1155Holder)
