@@ -132,7 +132,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     }
 
     // returns a list of all valid NFT ids for the event
-    function get_event_ids(string calldata description) public view returns (uint256[] memory) {
+    function get_event_ids(string calldata description) public view returns (uint256[] memory, Ids memory) {
         Ids memory tmp = event_to_ids[description];
         uint256 count = 0;
 
@@ -156,7 +156,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             }
         }
 
-        return result;
+        return (result, tmp);
     }
 
     // returns true if the description is available. false otherwise
