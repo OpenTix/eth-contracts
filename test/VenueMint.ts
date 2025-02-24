@@ -119,7 +119,7 @@ describe("VenueMint", function () {
             const tmp = await contract.create_new_event("test", "0xblahblah", 5, 0, [5,5,5,5,5]);
 
             // check that it returns properly for a valid and non valid event
-            expect(await contract.get_event_ids("test")).to.eql(Array(0n,1n,2n,3n,4n));
+            expect((await contract.get_event_ids("test"))[0]).to.eql(Array(0n,1n,2n,3n,4n));
             expect(contract.get_event_ids("")).to.rejectedWith(Error);
         })
 
@@ -134,7 +134,7 @@ describe("VenueMint", function () {
             const user_contract_instance = contract.connect(user);
             await user_contract_instance.buy_tickets("test", [0], {value: ethers.parseEther("1")});
 
-            expect(await contract.get_event_ids("test")).to.eql(Array(1n,2n,3n,4n))
+            expect((await contract.get_event_ids("test"))[0]).to.eql(Array(1n,2n,3n,4n))
         })
 
         it("will validate the description", async () => {
@@ -179,7 +179,6 @@ describe("VenueMint", function () {
                 // this is here purely for example (it is not necessary for our tests)
                 // setup a listener that removes the contracts ability to manage the holders tokens
                 holder_instance.on(holderfilter, async (response) => {
-                    console.log("Revoking contract access.");
                     await holder_instance.disallow_user_to_user_ticket_transfer();
                     disallow_ran = true;
                 });
@@ -526,7 +525,7 @@ describe("VenueMint", function () {
                         //console.log(event_data);
                         let num_tickets_to_purchase = genRandom(1, event_data['number_tickets']);
 
-                        let tickets_to_purchase = [...(await client_contract.get_event_ids(event_data['event_name'])).slice(0, num_tickets_to_purchase)];
+                        let tickets_to_purchase = [...(await client_contract.get_event_ids(event_data['event_name']))[0].slice(0, num_tickets_to_purchase)];
                         
                         let local_cost = num_tickets_to_purchase * event_data['ticket_cost'];
                         // update total for total money vendor should have
