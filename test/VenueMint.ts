@@ -440,6 +440,58 @@ describe("VenueMint", function () {
                 // check that the vendor wallet gained the correct amount of money
                 expect(vendor_balance_after - vendor_balance_before).is.equal(ticket_cost*4);
             })
+
+            it("doesn't try to double sell a ticket in a batch event", async() => {
+                const init_contract = await loadFixture(deployOne);
+                
+                // randomly calculate cost of the ticket
+                let ticket_cost = genRandom(5, 100000);
+
+                // vendor wallet and address
+                const wallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const address = await wallet.getAddress();
+
+                // add a ton of fake money to the vendor wallet
+                const vendor_contract_instance = init_contract.connect(wallet);
+
+                ethers.provider.send("hardhat_setBalance", [address, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // user wallet and address
+                const userWallet = ethers.Wallet.createRandom().connect(ethers.provider);
+                const userAddress = await userWallet.getAddress();
+
+                // add a ton of fake money to the user wallet
+                ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // second user wallet and address
+                const userWallet2 = ethers.Wallet.createRandom().connect(ethers.provider)
+                const userAddress2 = await userWallet2.getAddress()
+
+                // add a ton of fake money to the second user wallet
+                ethers.provider.send("hardhat_setBalance", [userAddress2, "0xFFFFFFFFFFFFFFFFFFFFF"])
+
+                // create the event
+                const tmp = await vendor_contract_instance.create_new_event("test", address, 4, 0, [ticket_cost, ticket_cost, ticket_cost, ticket_cost]);
+
+                // attach the contract to the user wallet
+                // this means when we call the contracts functions the
+                // sender (signer) will be the user wallet
+                const user_contract_instance = vendor_contract_instance.connect(userWallet);
+
+                const vendor_balance_before = await ethers.provider.getBalance(address);
+
+                // buy the tickets (way too much money give here)
+                const resp = await user_contract_instance.buy_tickets("test", [0,1], {value: ethers.parseEther("1")});
+
+                const user2_contract_instance = user_contract_instance.connect(userWallet2);
+
+                expect(user2_contract_instance.buy_tickets("test", [1,2], {value: ethers.parseEther("1")})).to.rejectedWith(Error);
+                
+                const vendor_balance_after = await ethers.provider.getBalance(address);
+
+                // check that the vendor wallet gained the correct amount of money
+                expect(vendor_balance_after - vendor_balance_before).is.equal(ticket_cost*2);
+            })
         })
 
         // so the goal here is to have random number of vendors generate a random
