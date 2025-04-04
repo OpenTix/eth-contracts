@@ -6,6 +6,10 @@ Repo that contains all of our smart contracts
 
 * Run automated tests with `npx hardhat test`
 
+# Current deployed address
+
+0x4C707875c6d3c30dF7d09E32211CCffDb817E862
+
 ## Steps
 * npm run rebuild - Will clean and compile all contracts in contracts/
 * npx hardhat node (localhost for now)

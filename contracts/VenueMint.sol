@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 struct Event {
     uint256 count;
@@ -31,9 +31,11 @@ contract VenueMint is ERC1155Holder, ERC1155 {
 
     mapping (string => address payable) private event_to_vendor; // Mapping event descriptions to vendor wallets
     mapping (uint256 => uint256) private ticket_costs; // Mapping nft ids to cost
-    mapping (uint256 => uint256) private original_ticket_costs; // mapping nft ids to their original costs (ticket_costs gets zero'd on purchase)
+    // mapping nft ids to their original costs (ticket_costs gets zero'd on purchase)
+    mapping (uint256 => uint256) private original_ticket_costs; 
     mapping (string => Ids) private event_to_ids; // Mapping event descriptions to NFT ids
-    mapping (uint256 => Transferable) private id_to_transferable; // Mapping ticket id to whether they are allowed to be transferred to another user
+     // Mapping ticket id to whether they are allowed to be transferred to another user
+    mapping (uint256 => Transferable) private id_to_transferable;
     mapping (uint256 => string) private ids_to_description; // Mapping ticket id to event description
 
     uint256 last_id = 0; // The last id that we minted
