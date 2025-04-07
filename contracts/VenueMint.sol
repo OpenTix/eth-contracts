@@ -218,14 +218,15 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     }
 
     // this enables the input user to transfer the callers tickets
-    function allow_user_to_user_ticket_transfer(uint256 ticketid) public returns (bool) {
+    function allow_user_to_user_ticket_transfer() public {
+        setApprovalForAll(self, true);
+    }
+
+    function allow_ticket_to_be_transfered(uint256 ticketid) public {
         Transferable memory tmp = id_to_transferable[ticketid];
         require(tmp.exists, "The ticket id provided is not valid.");
 
         id_to_transferable[ticketid].transferable = true;
-
-        setApprovalForAll(self, true);
-        return true;
     }
 
     // disables the contracts control of the senders tokens
