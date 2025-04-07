@@ -36,7 +36,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     mapping (string => Ids) private event_to_ids; // Mapping event descriptions to NFT ids
      // Mapping ticket id to whether they are allowed to be transferred to another user
     mapping (uint256 => Transferable) private id_to_transferable;
-    mapping (uint256 => string) private ids_to_description; // Mapping ticket id to event description
+    mapping (uint256 => uint256) private ids_to_description;
 
     uint256 last_id = 0; // The last id that we minted
 
@@ -89,7 +89,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             }
 
             id_to_transferable[i].exists = true;
-            ids_to_description[i] = description;
+            ids_to_description[i] = events.length;
 
 
             /*
@@ -165,7 +165,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
 
     // get the event description with the ticket id
     function get_event_description(uint256 id) public view returns (string memory) {
-        return ids_to_description[id];
+        return events[ids_to_description[id]].description;
     }
 
     // returns true if the description is available. false otherwise
