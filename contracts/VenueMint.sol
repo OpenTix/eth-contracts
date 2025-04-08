@@ -36,7 +36,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     mapping(string => Ids) private event_to_ids; // Mapping event descriptions to NFT ids
     // Mapping ticket id to whether they are allowed to be transferred to another user
     mapping(uint256 => Transferable) private id_to_transferable;
-    mapping(uint256 => uint256) private ids_to_description;
+    mapping(uint256 => uint256) private ids_to_events_index;
 
     uint256 last_id = 0; // The last id that we minted
 
@@ -55,7 +55,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     );
 
     // Set the owner to the deployer and self to the address of the contract
-    constructor() ERC1155("https://onlytickets.co/api/tokens/{id}.json") {
+    constructor() ERC1155("https://client.dev.opentix.co/api/tokens/{id}.json") {
         owner = msg.sender;
         self = address(this);
         //console.log("Contract address is ", self, " and owner address is", owner);
@@ -68,7 +68,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         uint256 general_admission,
         uint256 unique_seats,
         uint256[] calldata costs
-    ) public returns (bool) {
+    ) public {
         require(
             costs.length == unique_seats + general_admission,
             "Must provide the same number of costs as general admission and unique seats."
@@ -110,7 +110,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             }
 
             id_to_transferable[i].exists = true;
-            ids_to_description[i] = events.length;
+            ids_to_events_index[i] = events.length;
 
             /*
             if(i < unique_seats) {
@@ -144,7 +144,6 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         _mintBatch(self, ids, amounts, "");
         // Keep up with the last nft we minted;
         last_id = i;
-        return true;
     }
 
     function get_events() public view returns (string[] memory) {
@@ -201,7 +200,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     function get_event_description(
         uint256 id
     ) public view returns (string memory) {
-        return events[ids_to_description[id]].description;
+        return events[ids_to_events_index[id]].description;
     }
 
     // returns true if the description is available. false otherwise
@@ -292,7 +291,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     function buy_ticket_from_user(
         address user,
         uint256 ticketid
-    ) public payable returns (bool) {
+    ) public payable {
         Transferable memory tmp = id_to_transferable[ticketid];
 
         // we need to make sure this is a valid transfer
@@ -322,8 +321,6 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         id_to_transferable[ticketid].transferable = false;
 
         emit User_To_User_Transfer_Concluded(user, msg.sender);
-
-        return true;
     }
 
     function supportsInterface(
