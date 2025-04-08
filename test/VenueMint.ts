@@ -169,7 +169,8 @@ describe("VenueMint", function () {
                 
                 // buy the tickets and give the contract permission to control the holders tokens
                 const resp = await holder_instance.buy_tickets("test", [0], {value: ethers.parseEther("1")});
-                const resp1 = await holder_instance.allow_user_to_user_ticket_transfer(0);
+                const resp1 = await holder_instance.allow_user_to_user_ticket_transfer();
+                const resp11 = await holder_instance.allow_ticket_to_be_transfered(0);
                 
                 // variable to check that we removed the contracts ability to control our tokens
                 // a filter that allows us to only execute the function based on the holder and purchaser address
