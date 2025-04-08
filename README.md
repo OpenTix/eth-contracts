@@ -2,13 +2,20 @@
 
 Repo that contains all of our smart contracts
 
+# Deploying
+
+Deploy: `npm run deploy`
+
+Generate ABI: `npm run generate_abi_wsl` or `npm run generate_abi`
+* non-wsl version uses the solc-windows.exe from the repo.
+
 # Testing
 
 * Run automated tests with `npx hardhat test`
 
 # Current deployed address
 
-0x4C707875c6d3c30dF7d09E32211CCffDb817E862
+0xE7244Aab113cC2D06099C08669aD7dF4bFfd1Db3
 
 ## Steps
 * npm run rebuild - Will clean and compile all contracts in contracts/
