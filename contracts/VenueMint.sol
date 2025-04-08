@@ -279,6 +279,11 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         Transferable memory tmp = id_to_transferable[ticketid];
         require(tmp.exists, "The ticket id provided is not valid.");
 
+        // NOTE:
+        // This function as it is has a vulnerability that allows anyone to set a ticket to transferable if they know the 
+        // ticket id. If the owner of this ticket has ticket transfers enabled then it will be valid to transfer.
+        // This means anyone could forcefully buy a ticket from another user.
+
         id_to_transferable[ticketid].transferable = true;
     }
 
