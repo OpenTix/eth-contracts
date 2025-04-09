@@ -55,7 +55,9 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     );
 
     // Set the owner to the deployer and self to the address of the contract
-    constructor() ERC1155("https://client.dev.opentix.co/api/tokens/{id}.json") {
+    constructor()
+        ERC1155("https://client.dev.opentix.co/api/tokens/{id}.json")
+    {
         owner = msg.sender;
         self = address(this);
         //console.log("Contract address is ", self, " and owner address is", owner);
@@ -278,7 +280,10 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     function allow_ticket_to_be_transfered(uint256 ticketid) public {
         Transferable memory tmp = id_to_transferable[ticketid];
         require(tmp.exists, "The ticket id provided is not valid.");
-        require(balanceOf(msg.sender, ticketid) > 0, "Can't allow ticket transfer for a ticket you do not own.");
+        require(
+            balanceOf(msg.sender, ticketid) > 0,
+            "Can't allow ticket transfer for a ticket you do not own."
+        );
 
         id_to_transferable[ticketid].transferable = true;
     }
@@ -286,7 +291,10 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     function disallow_ticket_to_be_transfered(uint256 ticketid) public {
         Transferable memory tmp = id_to_transferable[ticketid];
         require(tmp.exists, "The ticket id provided is not valid.");
-        require(balanceOf(msg.sender, ticketid) > 0, "Can't disallow ticket transfer for a ticket you do not own.");
+        require(
+            balanceOf(msg.sender, ticketid) > 0,
+            "Can't disallow ticket transfer for a ticket you do not own."
+        );
 
         id_to_transferable[ticketid].transferable = false;
     }
@@ -312,6 +320,10 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         require(
             tmp.transferable,
             "This ticket id provided is not transferable."
+        );
+        require(
+            balanceOf(user, ticketid) > 0,
+            "Requested seller does not own the ticket."
         );
         require(
             msg.value >= original_ticket_costs[ticketid],
