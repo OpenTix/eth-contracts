@@ -277,6 +277,12 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         return isApprovedForAll(msg.sender, self);
     }
 
+    function check_ticket_transferable(uint256 ticketid) public view returns (bool) {
+        Transferable memory tmp = id_to_transferable[ticketid];
+        require(tmp.exists, "The ticket id provided is not valid.");
+        return tmp.transferable;
+    }
+
     function allow_ticket_to_be_transfered(uint256 ticketid) public {
         Transferable memory tmp = id_to_transferable[ticketid];
         require(tmp.exists, "The ticket id provided is not valid.");
