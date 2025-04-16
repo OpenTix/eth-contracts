@@ -15,7 +15,7 @@ Generate ABI: `npm run generate_abi_wsl` or `npm run generate_abi`
 
 # Current deployed address
 
-0xE7244Aab113cC2D06099C08669aD7dF4bFfd1Db3
+0x41c3462A19a267D8F5690D5b411c4e46aCf0bbcB
 
 ## Steps
 * npm run rebuild - Will clean and compile all contracts in contracts/
