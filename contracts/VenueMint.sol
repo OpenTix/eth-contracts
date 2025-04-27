@@ -20,7 +20,6 @@ struct Event {
     string description;
     Ids ids;
     address vendor_wallet;
-    uint256 ticket_cost;
 }
 
 struct EventsIndex {
@@ -33,7 +32,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     address private self; // The address of the contract (self)
 
     // Mapping nft ids to cost
-    // mapping(uint256 => uint256) private ticket_costs;
+    mapping(uint256 => uint256) private ticket_costs;
 
     // Mapping ticket id to whether they are allowed to be transferred to another user
     mapping(uint256 => bool) private id_to_transferable;
@@ -66,30 +65,18 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         //console.log("Contract address is ", self, " and owner address is", owner);
     }
 
-    function get_ticket_cost(uint256 id) view private returns (uint256) {
-        for (uint256 i = 0; i < events.length; i++) {
-             Ids memory tmp = events[i].ids;
-
-            if (id >= tmp.min && id <= tmp.max) {
-                return events[i].ticket_cost;
-            }
-        }
-
-        return 0;
-    }
-
     // Create a new event check the costs, emit an event being made
     function create_new_event(
         string calldata description,
         string calldata vendor_url,
         uint256 general_admission,
         uint256 unique_seats,
-        uint256 cost
+        uint256[] calldata costs
     ) public {
-        // require(
-        //     costs.length == unique_seats + general_admission,
-        //     "Must provide the same number of costs as general admission and unique seats."
-        // );
+        require(
+            costs.length == unique_seats + general_admission,
+            "Must provide the same number of costs as general admission and unique seats."
+        );
 
         emit Event_Commencement(
             msg.sender,
@@ -108,11 +95,11 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         for (; i < last_id + ids.length; ++i) {
             ids[i - last_id] = i;
             amounts[i - last_id] = 1;
-            // if (i < unique_seats) {
-            //     ticket_costs[i] = costs[i - last_id];
-            // } else {
-            //     ticket_costs[i] = costs[costs.length - 1];
-            // }
+            if (i < unique_seats) {
+                ticket_costs[i] = costs[i - last_id];
+            } else {
+                ticket_costs[i] = costs[costs.length - 1];
+            }
         }
 
         // keep track of the NFT ids for the event
@@ -131,8 +118,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
                 description: description,
                 count: general_admission + unique_seats,
                 ids: tmp,
-                vendor_wallet: payable(msg.sender),
-                ticket_cost: cost
+                vendor_wallet: payable(msg.sender)
             })
         );
 
@@ -220,7 +206,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     ) public view returns (uint256) {
         uint256 total_cost = 0;
         for (uint256 i = 0; i < ids.length; ++i) {
-            total_cost += get_ticket_cost(ids[i]);
+            total_cost += ticket_costs[ids[i]];
         }
         return total_cost;
     }
@@ -245,7 +231,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
                 "One of these tickets has already been sold."
             );
 
-            total_cost += get_ticket_cost(ids[i]);
+            total_cost += ticket_costs[ids[i]];
         }
 
         // Check if they are able to buy those tickets and that they have enough money
@@ -336,7 +322,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             "Requested seller does not own the ticket."
         );
 
-        uint256 cost = get_ticket_cost(ticketid);
+        uint256 cost = ticket_costs[ticketid];
 
         require(
             msg.value >= cost,
