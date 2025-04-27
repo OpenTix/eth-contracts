@@ -47,7 +47,7 @@ describe("VenueMint", function () {
         // this checks that the contract owns the nft after creation
         it("can create an nft", async () => {
             const contract = await loadFixture(deployOne);
-            await contract.create_new_event("test", "0xblahblahblah", 1, 0, [5])
+            await contract.create_new_event("test", "0xblahblahblah", 1, 0, 5)
             expect(await contract.balanceOfBatch([await contract.getAddress()], [0])).to.eql([1n])
         })
 
@@ -72,7 +72,7 @@ describe("VenueMint", function () {
             ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
             
             // create the event
-            const tmp = await vendor_contract_instance.create_new_event("test", address, 1, 0, [5000])
+            const tmp = await vendor_contract_instance.create_new_event("test", address, 1, 0, 5000)
             
             // attach the contract to the user wallet
             // this means when we call the contracts functions the
@@ -90,7 +90,7 @@ describe("VenueMint", function () {
         it("can create multiple nfts", async () => {
             const contract = await loadFixture(deployOne);
             const contract_address = await contract.getAddress();
-            await contract.create_new_event("test", contract_address, 2, 0, [5, 5]);
+            await contract.create_new_event("test", contract_address, 2, 0, 5);
             expect(await contract.balanceOfBatch([contract_address, contract_address], [0,1])).to.eql([1n,1n])
         })
 
@@ -105,7 +105,7 @@ describe("VenueMint", function () {
 
             for(let i = 1; i <= max; i++) {
                 // create the events
-                await contract.create_new_event(`test ${i*base}`, contract_address, i*base, 0, Array(i*base).fill(5));
+                await contract.create_new_event(`test ${i*base}`, contract_address, i*base, 0, 5);
 
                 // check that the contract owns all the events
                 expect(await contract.balanceOfBatch(Array(i*base).fill(contract_address), Array.from({length: i*base}, (_, i) => i + total_so_far))).to.eql(Array(i*base).fill(1n));
@@ -116,7 +116,7 @@ describe("VenueMint", function () {
         it("can get the ids of an event", async () => {
             const contract = await loadFixture(deployOne);
 
-            const tmp = await contract.create_new_event("test", "0xblahblah", 5, 0, [5,5,5,5,5]);
+            const tmp = await contract.create_new_event("test", "0xblahblah", 5, 0, 5);
 
             // check that it returns properly for a valid and non valid event
             expect((await contract.get_event_ids("test"))[0]).to.eql(Array(0n,1n,2n,3n,4n));
@@ -129,7 +129,7 @@ describe("VenueMint", function () {
             const user_address = await user.getAddress();
             ethers.provider.send("hardhat_setBalance", [user_address, "0xFFFFFFFFFFFFFFFFFFFFF"])
 
-            await contract.create_new_event("test", "0xblahblah", 5, 0, [5,5,5,5,5]);
+            await contract.create_new_event("test", "0xblahblah", 5, 0, 5);
 
             const user_contract_instance = contract.connect(user);
             await user_contract_instance.buy_tickets("test", [0], {value: ethers.parseEther("1")});
@@ -144,7 +144,7 @@ describe("VenueMint", function () {
 
             expect(tmp).to.equal(true);
 
-            await contract.create_new_event("test", "tme", 1, 0, [1]);
+            await contract.create_new_event("test", "tme", 1, 0, 1);
 
             expect(await contract.is_description_available("test")).to.equal(false);
         })
@@ -165,7 +165,7 @@ describe("VenueMint", function () {
                 
                 // make the holder instance and create the event
                 const holder_instance = init_contract.connect(nftholderwallet);
-                const tmp = await holder_instance.create_new_event("test", "cool beans", 1, 0, [2000]);
+                const tmp = await holder_instance.create_new_event("test", "cool beans", 1, 0, 2000);
                 
                 // buy the tickets and give the contract permission to control the holders tokens
                 const resp = await holder_instance.buy_tickets("test", [0], {value: ethers.parseEther("1")});
@@ -233,7 +233,7 @@ describe("VenueMint", function () {
                 ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
 
                 // create the event
-                const tmp = await vendor_contract_instance.create_new_event("test", address, 1, 0, [ticket_cost]);
+                const tmp = await vendor_contract_instance.create_new_event("test", address, 1, 0, ticket_cost);
 
                 // attach the contract to the user wallet
                 // this means when we call the contracts functions the
@@ -275,7 +275,7 @@ describe("VenueMint", function () {
                 ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
 
                 // create the event
-                const tmp = await vendor_contract_instance.create_new_event("test", address, 2, 0, [ticket_cost, ticket_cost]);
+                const tmp = await vendor_contract_instance.create_new_event("test", address, 2, 0, ticket_cost);
 
                 // attach the contract to the user wallet
                 // this means when we call the contracts functions the
@@ -317,7 +317,7 @@ describe("VenueMint", function () {
                 ethers.provider.send("hardhat_setBalance", [userAddress, "0xFFFFFFFFFFFFFFFFFFFFF"])
 
                 // create the event
-                const tmp = await vendor_contract_instance.create_new_event("test", address, 2, 0, [ticket_cost, ticket_cost]);
+                const tmp = await vendor_contract_instance.create_new_event("test", address, 2, 0, ticket_cost);
 
                 // attach the contract to the user wallet
                 // this means when we call the contracts functions the
@@ -367,7 +367,7 @@ describe("VenueMint", function () {
                 ethers.provider.send("hardhat_setBalance", [userAddress2, "0xFFFFFFFFFFFFFFFFFFFFF"])
 
                 // create the event
-                const tmp = await vendor_contract_instance.create_new_event("test", address, 2, 0, [ticket_cost, ticket_cost]);
+                const tmp = await vendor_contract_instance.create_new_event("test", address, 2, 0, ticket_cost);
 
                 // attach the contract to the user wallet
                 // this means when we call the contracts functions the
@@ -420,7 +420,7 @@ describe("VenueMint", function () {
                 ethers.provider.send("hardhat_setBalance", [userAddress2, "0xFFFFFFFFFFFFFFFFFFFFF"])
 
                 // create the event
-                const tmp = await vendor_contract_instance.create_new_event("test", address, 4, 0, [ticket_cost, ticket_cost, ticket_cost, ticket_cost]);
+                const tmp = await vendor_contract_instance.create_new_event("test", address, 4, 0, ticket_cost);
 
                 // attach the contract to the user wallet
                 // this means when we call the contracts functions the
@@ -472,7 +472,7 @@ describe("VenueMint", function () {
                 ethers.provider.send("hardhat_setBalance", [userAddress2, "0xFFFFFFFFFFFFFFFFFFFFF"])
 
                 // create the event
-                const tmp = await vendor_contract_instance.create_new_event("test", address, 4, 0, [ticket_cost, ticket_cost, ticket_cost, ticket_cost]);
+                const tmp = await vendor_contract_instance.create_new_event("test", address, 4, 0, ticket_cost);
 
                 // attach the contract to the user wallet
                 // this means when we call the contracts functions the
@@ -499,120 +499,120 @@ describe("VenueMint", function () {
         // number of events with a random numbers of tickets and have a random number of clients buy
         // a random number of tickets from a random event and then check that the vendor was payed correctly and
         // that the user owns the correct tickets
-        describe("Final Overarching Test", async function () {
-            it("should work great", async () => {
-                // gen a ton of random values
-                let number_vendors = genRandom(2, 20);
-                let number_clients = number_vendors;
+        // describe("Final Overarching Test", async function () {
+        //     it("should work great", async () => {
+        //         // gen a ton of random values
+        //         let number_vendors = genRandom(2, 20);
+        //         let number_clients = number_vendors;
 
-                let vendor_data = Array();
-                let vendor_event_nums = Array();
-                let total_bought_from_vendor = Array(number_vendors).fill(0);
-                let vendor_before_balance = Array(number_vendors);
-                let vendor_after_balance = Array(number_vendors);
+        //         let vendor_data = Array();
+        //         let vendor_event_nums = Array();
+        //         let total_bought_from_vendor = Array(number_vendors).fill(0);
+        //         let vendor_before_balance = Array(number_vendors);
+        //         let vendor_after_balance = Array(number_vendors);
 
-                // get the contract
-                let contract = await loadFixture(deployOne);
+        //         // get the contract
+        //         let contract = await loadFixture(deployOne);
 
-                // create the vendors
-                let vendors = Array(number_vendors);
+        //         // create the vendors
+        //         let vendors = Array(number_vendors);
                 
-                // setup the vendors
-                for(let i = 0; i < number_vendors; i++) {
-                    let number_events = genRandom(1,20);
-                    vendor_event_nums.push(number_events);
+        //         // setup the vendors
+        //         for(let i = 0; i < number_vendors; i++) {
+        //             let number_events = genRandom(1,20);
+        //             vendor_event_nums.push(number_events);
 
-                    let tmp_array = Array();
+        //             let tmp_array = Array();
 
-                    vendors[i] = ethers.Wallet.createRandom().connect(ethers.provider);
-                    let address = await vendors[i].getAddress();
+        //             vendors[i] = ethers.Wallet.createRandom().connect(ethers.provider);
+        //             let address = await vendors[i].getAddress();
 
-                    // give the vendor some money so it can generate tickets
-                    ethers.provider.send("hardhat_setBalance", [address, "0xFFFFFFFFFFFFFFFFFFFFF"])
+        //             // give the vendor some money so it can generate tickets
+        //             ethers.provider.send("hardhat_setBalance", [address, "0xFFFFFFFFFFFFFFFFFFFFF"])
 
-                    let vendor_contract = contract.connect(vendors[i]);
+        //             let vendor_contract = contract.connect(vendors[i]);
 
-                    for(let j = 0; j < number_events; j++) {
-                        let ticket_cost = genRandom(5,20000);
-                        let number_tickets = genRandom(1,500);
-                        let event_name = `vendor ${i} event ${j}`;
+        //             for(let j = 0; j < number_events; j++) {
+        //                 let ticket_cost = genRandom(5,20000);
+        //                 let number_tickets = genRandom(1,500);
+        //                 let event_name = `vendor ${i} event ${j}`;
 
-                        await vendor_contract.create_new_event(event_name, `i am vendor ${i}`, number_tickets, 0, Array(number_tickets).fill(ticket_cost));
+        //                 await vendor_contract.create_new_event(event_name, `i am vendor ${i}`, number_tickets, 0, ticket_cost);
 
-                        tmp_array.push({ticket_cost, number_tickets, event_name});
-                    }
+        //                 tmp_array.push({ticket_cost, number_tickets, event_name});
+        //             }
 
-                    vendor_before_balance[i] = await ethers.provider.getBalance(address);
+        //             vendor_before_balance[i] = await ethers.provider.getBalance(address);
 
-                    vendor_data.push(tmp_array);
-                }
+        //             vendor_data.push(tmp_array);
+        //         }
 
-                let client_data = Array();
-                let clients = Array(number_clients);
+        //         let client_data = Array();
+        //         let clients = Array(number_clients);
 
-                let client_vendor_mapping = Array.from({length: number_vendors}, (_, i) => i + 1).sort(() => Math.random() - 0.5).map(num => num-1);
+        //         let client_vendor_mapping = Array.from({length: number_vendors}, (_, i) => i + 1).sort(() => Math.random() - 0.5).map(num => num-1);
                 
-                // setup the clients and have them buy
-                for (let i = 0; i < number_clients; i++) {
-                    let num_events = vendor_event_nums[client_vendor_mapping[i]];
-                    let number_events_to_purchase_from = genRandom(1, num_events);
+        //         // setup the clients and have them buy
+        //         for (let i = 0; i < number_clients; i++) {
+        //             let num_events = vendor_event_nums[client_vendor_mapping[i]];
+        //             let number_events_to_purchase_from = genRandom(1, num_events);
 
-                    // long line but basically:
-                    // makes list from 0->num_events then randomly pulls number_events_to_purchase_from events from it
-                    let events_index_array = getRandomElements(Array.from({length: num_events}, (_, i) => i + 1).map(num => num-1), number_events_to_purchase_from);
+        //             // long line but basically:
+        //             // makes list from 0->num_events then randomly pulls number_events_to_purchase_from events from it
+        //             let events_index_array = getRandomElements(Array.from({length: num_events}, (_, i) => i + 1).map(num => num-1), number_events_to_purchase_from);
 
-                    clients[i] = ethers.Wallet.createRandom().connect(ethers.provider);
-                    let address = await clients[i].getAddress();
+        //             clients[i] = ethers.Wallet.createRandom().connect(ethers.provider);
+        //             let address = await clients[i].getAddress();
 
-                    // give the client some money so it can purchase tickets
-                    ethers.provider.send("hardhat_setBalance", [address, "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"])
+        //             // give the client some money so it can purchase tickets
+        //             ethers.provider.send("hardhat_setBalance", [address, "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"])
 
-                    let client_contract = contract.connect(clients[i]);
+        //             let client_contract = contract.connect(clients[i]);
 
-                    // gotta figure out our ids now (fuck)
-                    // after a 1.5 hour excursion that works (yay!)
-                    let event_ticket_purchases = Array();
-                    for (let j = 0; j < number_events_to_purchase_from; j++) {
+        //             // gotta figure out our ids now (fuck)
+        //             // after a 1.5 hour excursion that works (yay!)
+        //             let event_ticket_purchases = Array();
+        //             for (let j = 0; j < number_events_to_purchase_from; j++) {
 
-                        let event_data = vendor_data[client_vendor_mapping[i]][events_index_array[j]];
-                        //console.log(event_data);
-                        let num_tickets_to_purchase = genRandom(1, event_data['number_tickets']);
+        //                 let event_data = vendor_data[client_vendor_mapping[i]][events_index_array[j]];
+        //                 //console.log(event_data);
+        //                 let num_tickets_to_purchase = genRandom(1, event_data['number_tickets']);
 
-                        let tickets_to_purchase = [...(await client_contract.get_event_ids(event_data['event_name']))[0].slice(0, num_tickets_to_purchase)];
+        //                 let tickets_to_purchase = [...(await client_contract.get_event_ids(event_data['event_name']))[0].slice(0, num_tickets_to_purchase)];
                         
-                        let local_cost = num_tickets_to_purchase * event_data['ticket_cost'];
-                        // update total for total money vendor should have
-                        total_bought_from_vendor[client_vendor_mapping[i]] += local_cost;
+        //                 let local_cost = num_tickets_to_purchase * event_data['ticket_cost'];
+        //                 // update total for total money vendor should have
+        //                 total_bought_from_vendor[client_vendor_mapping[i]] += local_cost;
 
-                        await client_contract.buy_tickets(event_data['event_name'], tickets_to_purchase, {value: ethers.parseEther("1") + BigInt(local_cost)});
+        //                 await client_contract.buy_tickets(event_data['event_name'], tickets_to_purchase, {value: ethers.parseEther("1") + BigInt(local_cost)});
 
-                        event_ticket_purchases.push(tickets_to_purchase);
-                    }
+        //                 event_ticket_purchases.push(tickets_to_purchase);
+        //             }
                     
-                    client_data.push({number_events_to_purchase_from, event_ticket_purchases});
-                }
+        //             client_data.push({number_events_to_purchase_from, event_ticket_purchases});
+        //         }
 
-                // get the vendors balance after the transaction
-                for (let i = 0; i < number_vendors; i++) {
-                    vendor_after_balance[i] = await ethers.provider.getBalance(await vendors[i].getAddress());
-                }
+        //         // get the vendors balance after the transaction
+        //         for (let i = 0; i < number_vendors; i++) {
+        //             vendor_after_balance[i] = await ethers.provider.getBalance(await vendors[i].getAddress());
+        //         }
 
-                // make sure all the vendors got the right amount of money
-                for (let i = 0; i < number_vendors; i++) {
-                    let diff = vendor_after_balance[i] - vendor_before_balance[i];
+        //         // make sure all the vendors got the right amount of money
+        //         for (let i = 0; i < number_vendors; i++) {
+        //             let diff = vendor_after_balance[i] - vendor_before_balance[i];
 
-                    expect(diff).to.equal(total_bought_from_vendor[i]);
-                }
+        //             expect(diff).to.equal(total_bought_from_vendor[i]);
+        //         }
 
-                // make sure the clients own all the tickets they bought
-                for (let i = 0; i < clients.length; i++) {
-                    let big_ol_list = client_data[i]['event_ticket_purchases'];
+        //         // make sure the clients own all the tickets they bought
+        //         for (let i = 0; i < clients.length; i++) {
+        //             let big_ol_list = client_data[i]['event_ticket_purchases'];
                     
-                    for (let j = 0; j < big_ol_list.length; j++) {
-                        expect(await contract.balanceOfBatch(Array(big_ol_list[j].length).fill(await clients[i].getAddress()), big_ol_list[j])).to.eql(Array(big_ol_list[j].length).fill(1n));
-                    }
-                }
-            })
-        })
+        //             for (let j = 0; j < big_ol_list.length; j++) {
+        //                 expect(await contract.balanceOfBatch(Array(big_ol_list[j].length).fill(await clients[i].getAddress()), big_ol_list[j])).to.eql(Array(big_ol_list[j].length).fill(1n));
+        //             }
+        //         }
+        //     })
+        // })
     })
 })

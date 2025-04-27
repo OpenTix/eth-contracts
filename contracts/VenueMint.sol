@@ -7,11 +7,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // import "hardhat/console.sol";
 
-struct Event {
-    uint256 count;
-    string description;
-}
-
 // holds the minimum and maximum ids for that event
 struct Ids {
     // both inclusive
@@ -20,8 +15,16 @@ struct Ids {
     bool exists;
 }
 
-struct Transferable {
-    bool transferable;
+struct Event {
+    uint256 count;
+    string description;
+    Ids ids;
+    address vendor_wallet;
+    uint256 ticket_cost;
+}
+
+struct EventsIndex {
+    uint256 index;
     bool exists;
 }
 
@@ -29,14 +32,14 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     address private owner; // Deployer of contract (us)
     address private self; // The address of the contract (self)
 
-    mapping(string => address payable) private event_to_vendor; // Mapping event descriptions to vendor wallets
-    mapping(uint256 => uint256) private ticket_costs; // Mapping nft ids to cost
-    // mapping nft ids to their original costs (ticket_costs gets zero'd on purchase)
-    mapping(uint256 => uint256) private original_ticket_costs;
-    mapping(string => Ids) private event_to_ids; // Mapping event descriptions to NFT ids
+    // Mapping nft ids to cost
+    // mapping(uint256 => uint256) private ticket_costs;
+
     // Mapping ticket id to whether they are allowed to be transferred to another user
-    mapping(uint256 => Transferable) private id_to_transferable;
-    mapping(uint256 => uint256) private ids_to_events_index;
+    mapping(uint256 => bool) private id_to_transferable;
+
+    // map description to the event
+    mapping(string => EventsIndex) private description_to_events_index;
 
     uint256 last_id = 0; // The last id that we minted
 
@@ -63,18 +66,30 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         //console.log("Contract address is ", self, " and owner address is", owner);
     }
 
+    function get_ticket_cost(uint256 id) view private returns (uint256) {
+        for (uint256 i = 0; i < events.length; i++) {
+             Ids memory tmp = events[i].ids;
+
+            if (id >= tmp.min && id <= tmp.max) {
+                return events[i].ticket_cost;
+            }
+        }
+
+        return 0;
+    }
+
     // Create a new event check the costs, emit an event being made
     function create_new_event(
         string calldata description,
         string calldata vendor_url,
         uint256 general_admission,
         uint256 unique_seats,
-        uint256[] calldata costs
+        uint256 cost
     ) public {
-        require(
-            costs.length == unique_seats + general_admission,
-            "Must provide the same number of costs as general admission and unique seats."
-        );
+        // require(
+        //     costs.length == unique_seats + general_admission,
+        //     "Must provide the same number of costs as general admission and unique seats."
+        // );
 
         emit Event_Commencement(
             msg.sender,
@@ -82,16 +97,6 @@ contract VenueMint is ERC1155Holder, ERC1155 {
             vendor_url,
             general_admission + unique_seats
         );
-
-        //console.log("Description is %s", description);
-        //console.log("Venue URL is %s", from);
-        //console.log("General admission is %d", general_admission);
-        //console.log("Unique seats is %d", unique_seats);
-
-        /*
-        uint256[] memory ids = new uint256[](unique_seats + 1);
-        uint256[] memory amounts = new uint256[](unique_seats + 1);
-        */ // Uncomment this if we want to try semi-fungible tickets
 
         // Set the ids and the amounts of each along with the cost of each being minted
         uint256[] memory ids = new uint256[](unique_seats + general_admission);
@@ -103,45 +108,33 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         for (; i < last_id + ids.length; ++i) {
             ids[i - last_id] = i;
             amounts[i - last_id] = 1;
-            if (i < unique_seats) {
-                ticket_costs[i] = costs[i - last_id];
-                original_ticket_costs[i] = costs[i - last_id];
-            } else {
-                ticket_costs[i] = costs[costs.length - 1];
-                original_ticket_costs[i] = costs[costs.length - 1];
-            }
-
-            id_to_transferable[i].exists = true;
-            ids_to_events_index[i] = events.length;
-
-            /*
-            if(i < unique_seats) {
-                amounts[i] = 1;
-            } else {
-                amounts[i] = general_admission;
-            }
-            */ // Uncomment this if we want to try semi-fungible tickets
-
-            // console.log("ids[%d] = %d", i, ids[i]);
-            // console.log("amounts[%d] = %d", i, amounts[i]);
+            // if (i < unique_seats) {
+            //     ticket_costs[i] = costs[i - last_id];
+            // } else {
+            //     ticket_costs[i] = costs[costs.length - 1];
+            // }
         }
-
-        // Track the vendor wallet so they can be paid when someone buys a ticket to their event
-        // Save the event to events
-        event_to_vendor[description] = payable(msg.sender);
-        events.push(
-            Event({
-                description: description,
-                count: general_admission + unique_seats
-            })
-        );
 
         // keep track of the NFT ids for the event
         Ids memory tmp;
         tmp.min = last_id;
         tmp.max = i - 1;
         tmp.exists = true;
-        event_to_ids[description] = tmp;
+
+        EventsIndex memory tmp2;
+        tmp2.exists = true;
+        tmp2.index = events.length;
+
+        description_to_events_index[description] = tmp2;
+        events.push(
+            Event({
+                description: description,
+                count: general_admission + unique_seats,
+                ids: tmp,
+                vendor_wallet: payable(msg.sender),
+                ticket_cost: cost
+            })
+        );
 
         _mintBatch(self, ids, amounts, "");
         // Keep up with the last nft we minted;
@@ -172,15 +165,18 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     function get_event_ids(
         string calldata description
     ) public view returns (uint256[] memory, Ids memory) {
-        Ids memory tmp = event_to_ids[description];
-        uint256 count = 0;
+        EventsIndex memory tmp2 = description_to_events_index[description];
 
         // check that there is a valid description
-        require(tmp.exists, "Please provide a description for a valid event.");
+        require(tmp2.exists, "Please provide a description for a valid event.");
+
+        Ids memory tmp = events[description_to_events_index[description].index]
+            .ids;
+        uint256 count = 0;
 
         // figure out how big our array needs to be
         for (uint256 i = tmp.min; i <= tmp.max; i++) {
-            if (ticket_costs[i] != 0) {
+            if (balanceOf(self, i) > 0) {
                 count++;
             }
         }
@@ -188,8 +184,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         uint256[] memory result = new uint256[](count);
         uint256 j = 0;
         for (uint256 i = tmp.min; i <= tmp.max; i++) {
-            if (ticket_costs[i] != 0) {
-                //console.log(i);
+            if (balanceOf(self, i) > 0) {
                 result[j] = i;
                 j++;
             }
@@ -202,14 +197,21 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     function get_event_description(
         uint256 id
     ) public view returns (string memory) {
-        return events[ids_to_events_index[id]].description;
+        for (uint256 i = 0; i < events.length; i++) {
+            Ids memory tmp = events[i].ids;
+
+            if (id >= tmp.min && id <= tmp.max) {
+                return events[i].description;
+            }
+        }
+        return "";
     }
 
     // returns true if the description is available. false otherwise
     function is_description_available(
         string calldata description
     ) public view returns (bool) {
-        return !event_to_ids[description].exists;
+        return !description_to_events_index[description].exists;
     }
 
     // Give the cost of tickets so that we can pass that into value field on frontend
@@ -218,7 +220,7 @@ contract VenueMint is ERC1155Holder, ERC1155 {
     ) public view returns (uint256) {
         uint256 total_cost = 0;
         for (uint256 i = 0; i < ids.length; ++i) {
-            total_cost += ticket_costs[ids[i]];
+            total_cost += get_ticket_cost(ids[i]);
         }
         return total_cost;
     }
@@ -228,10 +230,22 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         string calldata event_description,
         uint256[] calldata ids
     ) public payable returns (bool, uint256) {
+        // Make sure its a real event
+        require(
+            description_to_events_index[event_description].exists,
+            "Please provide a description for a valid event."
+        );
+
         // Get the total cost of each tickets
         uint256 total_cost = 0;
         for (uint256 i = 0; i < ids.length; ++i) {
-            total_cost += ticket_costs[ids[i]];
+            // Make sure the contract currently has these tickets
+            require(
+                balanceOf(self, ids[i]) > 0,
+                "One of these tickets has already been sold."
+            );
+
+            total_cost += get_ticket_cost(ids[i]);
         }
 
         // Check if they are able to buy those tickets and that they have enough money
@@ -251,19 +265,14 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         }
 
         // Transfer the money to the vendor
-        (bool success, ) = event_to_vendor[event_description].call{
-            value: total_cost
-        }("");
+        (bool success, ) = events[
+            description_to_events_index[event_description].index
+        ].vendor_wallet.call{value: total_cost}("");
         require(success, "transfer to vender failed.");
 
         // Transfer the tickets to the user
         _safeBatchTransferFrom(self, msg.sender, ids, values, "");
         emit Buy_Ticket_Event(event_description, ids.length);
-
-        // 0 out the costs so that we can't double sell tickets
-        for (uint256 i = 0; i < ids.length; ++i) {
-            ticket_costs[ids[i]] = 0;
-        }
 
         return (true, total_cost);
     }
@@ -277,32 +286,30 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         return isApprovedForAll(msg.sender, self);
     }
 
-    function check_ticket_transferable(uint256 ticketid) public view returns (bool) {
-        Transferable memory tmp = id_to_transferable[ticketid];
-        require(tmp.exists, "The ticket id provided is not valid.");
-        return tmp.transferable;
+    function check_ticket_transferable(
+        uint256 ticketid
+    ) public view returns (bool) {
+        return id_to_transferable[ticketid];
     }
 
     function allow_ticket_to_be_transfered(uint256 ticketid) public {
-        Transferable memory tmp = id_to_transferable[ticketid];
-        require(tmp.exists, "The ticket id provided is not valid.");
+        require(ticketid < last_id, "The ticket id provided is not valid.");
         require(
             balanceOf(msg.sender, ticketid) > 0,
             "Can't allow ticket transfer for a ticket you do not own."
         );
 
-        id_to_transferable[ticketid].transferable = true;
+        id_to_transferable[ticketid] = true;
     }
 
     function disallow_ticket_to_be_transfered(uint256 ticketid) public {
-        Transferable memory tmp = id_to_transferable[ticketid];
-        require(tmp.exists, "The ticket id provided is not valid.");
+        require(ticketid < last_id, "The ticket id provided is not valid.");
         require(
             balanceOf(msg.sender, ticketid) > 0,
             "Can't disallow ticket transfer for a ticket you do not own."
         );
 
-        id_to_transferable[ticketid].transferable = false;
+        id_to_transferable[ticketid] = false;
     }
 
     // disables the contracts control of the senders tokens
@@ -315,37 +322,35 @@ contract VenueMint is ERC1155Holder, ERC1155 {
         address user,
         uint256 ticketid
     ) public payable {
-        Transferable memory tmp = id_to_transferable[ticketid];
+        bool tmp = id_to_transferable[ticketid];
 
         // we need to make sure this is a valid transfer
-        require(tmp.exists, "The ticket id provided is not valid.");
+        require(ticketid < last_id, "The ticket id provided is not valid.");
         require(
             isApprovedForAll(user, self),
             "The seller has not authorized a transfer."
         );
-        require(
-            tmp.transferable,
-            "This ticket id provided is not transferable."
-        );
+        require(tmp, "This ticket id provided is not transferable.");
         require(
             balanceOf(user, ticketid) > 0,
             "Requested seller does not own the ticket."
         );
+
+        uint256 cost = get_ticket_cost(ticketid);
+
         require(
-            msg.value >= original_ticket_costs[ticketid],
+            msg.value >= cost,
             "You did not send enough money to purchase the ticket."
         );
 
         // send the money to the user
-        (bool success, ) = user.call{value: original_ticket_costs[ticketid]}(
-            ""
-        );
+        (bool success, ) = user.call{value: cost}("");
         require(success, "Failed to pay the user you are purchasing from.");
 
         // transfer the nft to the purchaser
         _safeTransferFrom(user, msg.sender, ticketid, 1, "");
 
-        id_to_transferable[ticketid].transferable = false;
+        id_to_transferable[ticketid] = false;
 
         emit User_To_User_Transfer_Concluded(user, msg.sender);
     }
