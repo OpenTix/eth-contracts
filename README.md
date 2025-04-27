@@ -17,6 +17,10 @@ Generate ABI: `npm run generate_abi_wsl` or `npm run generate_abi`
 
 0x41c3462A19a267D8F5690D5b411c4e46aCf0bbcB
 
+## Mainnet
+
+0xeB60D2D16F2D48324C84D9ffB26465A88d40659f
+
 ## Steps
 * npm run rebuild - Will clean and compile all contracts in contracts/
 * npx hardhat node (localhost for now)
