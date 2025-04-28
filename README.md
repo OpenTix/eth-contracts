@@ -15,7 +15,7 @@ Generate ABI: `npm run generate_abi_wsl` or `npm run generate_abi`
 
 # Current deployed address
 
-0x4B10Ca604B40b782eF00b497357b3dc9478457DF
+0x8BE301eD017D23977F98b48CD9D18EaB91C0ae26
 
 ## Mainnet
 
